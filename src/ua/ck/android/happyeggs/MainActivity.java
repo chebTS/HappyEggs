@@ -28,13 +28,27 @@ import com.actionbarsherlock.widget.ShareActionProvider;
 import com.bump.api.BumpAPIIntents;
 import com.bump.api.IBumpAPI;
 import com.devsmart.android.ui.HorizontalListView;
+import com.google.analytics.tracking.android.EasyTracker;
 
 
 public class MainActivity extends SherlockActivity implements AdapterView.OnItemClickListener {
+	private final String JSON_TAG = "attack";
 	private IBumpAPI api;
 	private final String tag ="!!!CHEB!!!";
 	private boolean bumpStatus; 
 	private int myNumber = 0, hisNumber = 0;
+	
+	@Override
+    protected void onStart() {
+        EasyTracker.getInstance().activityStart(this);
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        EasyTracker.getInstance().activityStop(this);
+    }
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,12 +76,12 @@ public class MainActivity extends SherlockActivity implements AdapterView.OnItem
     
     private byte[] sendNumber(){
     	int min = 1;
-    	int max = 10;
+    	int max = 100;
     	Random r = new Random();
     	myNumber = r.nextInt(max - min + 1) + min;
     	try {
     		JSONObject jRoot = new JSONObject();
-			jRoot.put("number", myNumber);
+			jRoot.put(JSON_TAG, myNumber);
 			return jRoot.toString().getBytes();
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -79,7 +93,7 @@ public class MainActivity extends SherlockActivity implements AdapterView.OnItem
     private void checkNumber(String data){
     	try{
     		JSONObject jRoot = new JSONObject(data);
-    		hisNumber = jRoot.optInt("number");
+    		hisNumber = jRoot.optInt(JSON_TAG);
     		if (hisNumber > myNumber){
     			Toast.makeText(getApplicationContext(), "You lose", Toast.LENGTH_SHORT).show();
     		}else if (hisNumber < myNumber){
@@ -91,16 +105,14 @@ public class MainActivity extends SherlockActivity implements AdapterView.OnItem
     		e.printStackTrace();
     	}
     }
-    
-    
+        
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
 	    public void onReceive(Context context, Intent intent) {
 	        final String action = intent.getAction();
 	        try {
 	        	Log.i(tag,"Recive something");
 	        	if (action.equals(BumpAPIIntents.DATA_RECEIVED)) {
-	        		checkNumber(new String(intent.getByteArrayExtra("data")));
-	        		//parseResult(new String(intent.getByteArrayExtra("data")));  	  
+	        		checkNumber(new String(intent.getByteArrayExtra("data")));	  
 	            } else if (action.equals(BumpAPIIntents.MATCHED)) {
 	                api.confirm(intent.getLongExtra("proposedChannelID", 0), true);
 	            } else if (action.equals(BumpAPIIntents.CHANNEL_CONFIRMED)) {	            	
@@ -110,8 +122,6 @@ public class MainActivity extends SherlockActivity implements AdapterView.OnItem
 	                bumpStatus = true;
 	                invalidateOptionsMenu();
 	                Log.i("Status","ok");
-//	                txtInternetStatus.setText("OK");
-//	                txtInternetStatus.setBackgroundColor(getResources().getColor(R.color.green));
 	            } else{
 	            	Log.i(tag,"Get this action: "+action.toString());
 	            	Toast.makeText(getApplicationContext(), "No contact, try again", Toast.LENGTH_SHORT).show();		            
@@ -146,22 +156,12 @@ public class MainActivity extends SherlockActivity implements AdapterView.OnItem
 		public void onServiceDisconnected(ComponentName name) {}
 	};
 	
-	private void parseResult(String res){
-		Toast.makeText(getApplicationContext(), res, Toast.LENGTH_LONG).show();
-	}
-	
+
     
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 		Toast.makeText(getApplicationContext(), "Choosen", Toast.LENGTH_LONG).show();		
-	}
-
-	
-	
-	@Override
-	public void invalidateOptionsMenu() {		
-		super.invalidateOptionsMenu();
-	}
+	}	
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -183,7 +183,6 @@ public class MainActivity extends SherlockActivity implements AdapterView.OnItem
 		shareIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.sharesubject));
 		shareIntent.putExtra(Intent.EXTRA_SUBJECT,getString(R.string.sharetext));
 		mShareActionProvider.setShareIntent(shareIntent);
-	}
-    
+	}    
   
 }

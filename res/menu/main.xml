@@ -16,6 +16,7 @@
 		android:id="@+id/share"
 		android:actionProviderClass="com.actionbarsherlock.widget.ShareActionProvider"
 		android:enabled="true"
+		android:title="@string/share"
 		android:showAsAction="always"
 		android:visible="true">
 	</item>
